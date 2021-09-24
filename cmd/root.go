@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"github.com/nathanhack/gogeneticsearch/search"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 	"os/exec"
+	"os/signal"
 )
 
 var iteration, totalPerIter, mutatedPerIter int
@@ -41,7 +44,25 @@ expected to be in the form of a utf-8 string.`,
 		if totalPerIter < mutatedPerIter {
 			return fmt.Errorf("total sample per iteration must be larger equal to or larger than mutated")
 		}
-		search.Run(iteration, totalPerIter-mutatedPerIter, mutatedPerIter, func() string {
+
+		ctx, cancel := context.WithCancel(context.Background())
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, os.Interrupt)
+		defer func() {
+			signal.Stop(signalChan)
+			cancel()
+		}()
+		go func() {
+			select {
+			case <-signalChan: // first signal, cancel context
+				cancel()
+			case <-ctx.Done():
+			}
+			<-signalChan // second signal, hard exit
+			os.Exit(1)
+		}()
+
+		search.Run(ctx, iteration, totalPerIter-mutatedPerIter, mutatedPerIter, func() string {
 			out, err := exec.Command(randomScript).Output()
 			if err != nil {
 				logrus.Fatal(err)

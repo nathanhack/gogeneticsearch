@@ -1,6 +1,9 @@
 package search
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 type Random func() string
 type RandomTopHistory func() string
@@ -8,7 +11,7 @@ type Mutate func(s1, s2 string) string
 type Test func(s string) string
 type Store func(s, result string)
 
-func Run(iterations, randPerIter, mutatedPerIter int, random Random, history RandomTopHistory, mutate Mutate, test Test, store Store) error {
+func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, random Random, history RandomTopHistory, mutate Mutate, test Test, store Store) error {
 	if random == nil {
 		return fmt.Errorf("random")
 	}
@@ -25,11 +28,16 @@ func Run(iterations, randPerIter, mutatedPerIter int, random Random, history Ran
 		}
 
 		//now go through all the samples
-
 		for _, sample := range samples {
 			store(sample, test(sample))
 		}
 
+		//check up on the context
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
 	}
 
 	return nil
