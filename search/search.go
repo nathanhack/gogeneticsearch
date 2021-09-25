@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
 )
 
 type Random func() string
@@ -11,9 +12,14 @@ type Mutate func(s1, s2 string) string
 type Test func(s string) string
 type Store func(s, result string)
 
-func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, random Random, history RandomTopHistory, mutate Mutate, test Test, store Store) error {
+func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, random Random, history RandomTopHistory, mutate Mutate, test Test, store Store, showProgress bool) error {
 	if random == nil {
 		return fmt.Errorf("random")
+	}
+
+	var bar *pb.ProgressBar
+	if showProgress {
+		bar = pb.StartNew(iterations)
 	}
 
 	for i := 0; i < iterations; i++ {
@@ -43,6 +49,12 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 			return nil
 		default:
 		}
+		if showProgress {
+			bar.Increment()
+		}
+	}
+	if showProgress {
+		bar.Finish()
 	}
 
 	return nil
