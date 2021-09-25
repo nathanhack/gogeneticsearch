@@ -28,7 +28,7 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 		for j := 0; j < mutatedPerIter; j++ {
 			h1 := history()
 			h2 := history()
-			if h1 == "" {
+			if h1 == "" || h2 == "" {
 				break
 			}
 			samples = append(samples, mutate(h1, h2))
