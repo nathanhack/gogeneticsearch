@@ -20,7 +20,12 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 		samples := make([]string, 0, randPerIter+mutatedPerIter)
 
 		for j := 0; j < mutatedPerIter; j++ {
-			samples = append(samples, mutate(history(), history()))
+			h1 := history()
+			h2 := history()
+			if h1 == "" {
+				break
+			}
+			samples = append(samples, mutate(h1, h2))
 		}
 
 		for len(samples) < randPerIter+mutatedPerIter {
