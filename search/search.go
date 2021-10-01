@@ -44,17 +44,28 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 				if h1 == "" || h2 == "" {
 					break
 				}
-				samples = append(samples, mutate(h1, h2))
+
+				sample := mutate(h1, h2)
+				if sample != "" {
+					samples = append(samples, sample)
+				}
 			}
 
 			for len(samples) < randPerIter+mutatedPerIter {
-				samples = append(samples, random())
+				sample := random()
+				if sample != "" {
+					samples = append(samples, sample)
+				}
 			}
 
 			//now go through all the samples
 			for _, sample := range samples {
-				store(sample, test(sample))
+				results := test(sample)
+				if results != "" {
+					store(sample, results)
+				}
 			}
+
 			if showProgress {
 				bar.Increment()
 			}
