@@ -67,7 +67,7 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 			}
 
 			if showProgress {
-				bar.Increment()
+				bar.Add(len(samples))
 			}
 		})
 
