@@ -32,7 +32,7 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 		bar = pb.StartNew(iterations)
 	}
 
-	pool := threadpool.New(ctx, parallelThreads, iterations)
+	pool := threadpool.New(ctx, parallelThreads)
 
 	for i := 0; i < iterations; i++ {
 		pool.Add(func() {
