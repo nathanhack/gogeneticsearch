@@ -1,6 +1,6 @@
 module github.com/nathanhack/gogeneticsearch
 
-go 1.15
+go 1.21.5
 
 require (
 	github.com/cheggaaa/pb/v3 v3.0.8

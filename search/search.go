@@ -3,24 +3,25 @@ package search
 import (
 	"context"
 	"fmt"
+
 	"github.com/cheggaaa/pb/v3"
 	"github.com/nathanhack/threadpool"
 )
 
 // Random should return a sample that was randomly generated
-type Random func() string
+type Random func() []byte
 
 // RandomTopHistory should return a sample pick at random from the "top" performing samples
-type RandomTopHistory func() string
+type RandomTopHistory func() []byte
 
 // Mutate should take two samples to create and returns a third sample, the goal is the third sample is randomly created based on the two samples s1 and s2.
-type Mutate func(s1, s2 string) string
+type Mutate func(s1, s2 []byte) []byte
 
 // Test takes a sample to test and returns a results string.
-type Test func(s string) string
+type Test func(s []byte) []byte
 
 // Store take in the sample and results strings, with the goal to store the two for later use (in the RandomTopHistory and possibly the Random and Mutate function to dedup).
-type Store func(s, result string)
+type Store func(s, result []byte)
 
 func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, random Random, history RandomTopHistory, mutate Mutate, test Test, store Store, showProgress bool, parallelThreads int) error {
 	if random == nil {
@@ -36,24 +37,24 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 
 	for i := 0; i < iterations; i++ {
 		pool.Add(func() {
-			samples := make([]string, 0, randPerIter+mutatedPerIter)
+			samples := make([][]byte, 0, randPerIter+mutatedPerIter)
 
 			for j := 0; j < mutatedPerIter; j++ {
 				h1 := history()
 				h2 := history()
-				if h1 == "" || h2 == "" {
+				if len(h1) == 0 || len(h2) == 0 {
 					break
 				}
 
 				sample := mutate(h1, h2)
-				if sample != "" {
+				if len(sample) != 0 {
 					samples = append(samples, sample)
 				}
 			}
 
 			for len(samples) < randPerIter+mutatedPerIter {
 				sample := random()
-				if sample != "" {
+				if len(sample) != 0 {
 					samples = append(samples, sample)
 				}
 			}
@@ -61,7 +62,7 @@ func Run(ctx context.Context, iterations, randPerIter, mutatedPerIter int, rando
 			//now go through all the samples
 			for _, sample := range samples {
 				results := test(sample)
-				if results != "" {
+				if len(results) != 0 {
 					store(sample, results)
 				}
 			}
